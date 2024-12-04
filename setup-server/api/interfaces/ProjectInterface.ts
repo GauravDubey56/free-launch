@@ -13,3 +13,7 @@ export enum GithubAppEvents {
   suspended = "suspended",
   added = "added"
 }
+
+export enum RepoTypes {
+  express = "express"
+}

@@ -20,4 +20,21 @@ router.post(
   authHandler,
   asyncHandler(AppControllers.generateDocRepository)
 );
+
+router.post(
+  "/deploymentJob",
+  authHandler,
+  asyncHandler(AppControllers.createDeploymentJob)
+);
+
+router.get(
+  "/deploymentJobs",
+  authHandler,
+  asyncHandler(AppControllers.getDeploymentJobs)
+);
+
+router.post(
+  "/notifyDeploymentStatus",
+  asyncHandler(AppControllers.notifyDeploymentStatus)
+)
 export default router;
