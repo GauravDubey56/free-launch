@@ -8,6 +8,7 @@ import Http from "../utils/http";
 import CustomError from "../utils/error";
 import Logger from "../utils/logging";
 import { uploadGithubRepo } from "../utils/upload";
+import DeploymentJobService from "../services/DeploymentService";
 enum ActionTypes {
   fetchAndStoreZip = "fetchAndStoreZip",
 }
@@ -146,3 +147,92 @@ export const generateDocRepository = async (
     }
   }
 };
+
+export const createDeploymentJob = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  console.log('createDeploymentJob', req.body);
+  const repoService = new ProjectService(req.user.clientId);
+  let repository = await repoService.getRepositoryById(req.body.RepositoryId);
+  if (!repository) {
+    throw new CustomError("No such repository found", 400);
+  } else {
+    const github = new GithubAuthService(
+      null,
+      repository.repoUser_github_access_token
+    );
+    const repoData = await github.getRepositoryDetails(
+      repository.repoUser_client_info.githubUsername as string,
+      repository.repositoryName
+    );
+    const repo = new ProjectService(req.user.clientId);
+    if (repoData) {
+      const repoZip = await github.getRepositoryZipUrl({
+        githubUsername: repository.repoUser_client_info.githubUsername as string,
+        repoName: repository.repositoryName,
+        branch: repoData.default_branch,
+      });
+      const s3Upload = await uploadGithubRepo({
+        repoZipUrl: repoZip?.zipUrl,
+        repoName: repository.repositoryName,
+        userId: req.user.clientId,
+      });
+      await repo.updateRepo(repository.id, {
+        defaultBranch: repoData.default_branch,
+        contentUrl: s3Upload.uploadUrl,
+      });
+      repository.contentUrl = s3Upload.signedUrl;
+      const deploymentJob = new DeploymentJobService(repository);
+      await deploymentJob.createDeploymentJob();
+      await deploymentJob.sendDeploymentJobToQueue();
+      sendResponse(res, {
+        statusCode: 200,
+        data: {
+          fetchUrl: s3Upload.signedUrl,
+        },
+      });
+    } else {
+      throw new CustomError("No such repository found", 400);
+    }
+  }
+};
+
+export const getDeploymentJobs = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const repoService = new ProjectService(req.user.clientId);
+  const query = req.query as any;
+  if (!query?.RepositoryId) {
+    throw new CustomError("No repository id provided", 400);
+  }
+  let repository = await repoService.getRepositoryById(query?.RepositoryId);
+  if (!repository) {
+    throw new CustomError("No such repository found", 400);
+  } else {
+    const jobs = await DeploymentJobService.getDeploymentJobs(repository.id);
+    sendResponse(res, {
+      statusCode: 200,
+      data: jobs,
+    });
+  }
+}
+
+export const notifyDeploymentStatus = async (
+  req: AuthenticatedRequest,
+  res: Response
+) => {
+  const jobId = req.body.deploymentId;
+
+  let deployment = await DeploymentJobService.getDeploymentJobById(jobId);
+  if (!deployment) {
+    throw new CustomError("No such deployment found", 400);
+  } else {
+    const update = await DeploymentJobService.updateDeploymentJobStatus(jobId, req.body.status);
+    sendResponse(res, {
+      statusCode: 200,
+      data: update,
+    });
+  }
+}

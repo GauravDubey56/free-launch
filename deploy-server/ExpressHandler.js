@@ -1,6 +1,5 @@
 const axios = require("axios");
-const dotenv = require("dotenv");
-dotenv.config();
+
 const fs = require("fs");
 const { execSync } = require("child_process");
 const path = require("path");
