@@ -4,14 +4,12 @@ import CustomError from "../utils/error";
 import ServiceResponse from "./Response";
 class AuthToken {
   #jwtToken: string;
-  constructor(secret?: string) {
-    if (!secret) {
-      secret = String(process.env.JWT_SECRET);
-    }
-    this.#jwtToken = secret;
+  constructor() {
+    this.#jwtToken = String(process.env.JWT_SECRET);;
   }
   createToken(tokenData: clientTokenData, expiryInSeconds?: number) {
-    const jwtToken = jwt.sign(tokenData, this.#jwtToken);
+    const secret = this.#jwtToken;
+    const jwtToken = jwt.sign(tokenData, secret);
     return jwtToken;
   }
   decryptTokenFromHeaders(req: AuthenticatedRequest) {
@@ -21,7 +19,8 @@ class AuthToken {
       if (!token) {
         throw new CustomError("Unauthorized access: No token provided", 401);
       }
-      const tokenData = jwt.verify(token, this.#jwtToken) as clientTokenData
+      const secret = this.#jwtToken;
+      const tokenData = jwt.verify(token, secret) as clientTokenData
       req.user = tokenData;
       response.success("User authenticated", tokenData);
     } catch (error) {
@@ -33,7 +32,3 @@ class AuthToken {
 }
 
 export default AuthToken;
-const DefaultAuthHandler = new AuthToken();
-export {
-  DefaultAuthHandler
-}

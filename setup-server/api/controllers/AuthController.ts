@@ -38,12 +38,15 @@ export const handleGithubCallback = async (req: Request, res: Response) => {
     });
     Logger.log(`User exists token`, newUser);
     if (newUser?.data?.token) {
-      const queryParam = queryString.stringify({
-        successToken: newUser.data.token,
-      });
+      // const queryParam = queryString.stringify({
+      //   successToken: newUser.data.token,
+      // });
       sendResponse(res, {
-        redirectUrl: `${GITHUB_REDIRECT_TO}?${queryParam}`,
+        // redirectUrl: `${GITHUB_REDIRECT_TO}?${queryParam}`,
         statusCode: 200,
+        data: {
+          successToken: newUser.data.token,
+        }
       });
     }
   } else {
@@ -52,7 +55,7 @@ export const handleGithubCallback = async (req: Request, res: Response) => {
     });
     sendResponse(res, {
       statusCode: 200,
-      redirectUrl: `${GITHUB_REDIRECT_TO}?${error}`,
+      // redirectUrl: `${GITHUB_REDIRECT_TO}?${error}`,
     });
   }
 };

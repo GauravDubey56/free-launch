@@ -15,5 +15,5 @@ export const DB_PORT = Number(process.env.DB_PORT) || 26257;
 export const DB_HOST = process.env.DB_HOST;
 export const DB_NAME = process.env.DB_NAME;
 export const AUTH_PAGE_URL: string = process.env.AUTH_PAGE_URL || "";
-export const GITHUB_REDIRECT_TO: string = process.env.GITHUB_REDIRECT_TO || "";
+export const GITHUB_REDIRECT_TO: string = process.env.GITHUB_REDIRECT_TO || "http://localhost:3000/authSuccess";
 export const DEPLOYER_SERVICE_URL = process.env.DEPLOYER_SERVICE_URL || "http://localhost:5000";

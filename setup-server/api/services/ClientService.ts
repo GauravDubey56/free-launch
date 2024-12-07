@@ -3,7 +3,7 @@ import { User } from "../database/entity/User";
 import Logger from "../utils/logging";
 import ServiceResponse from "./Response";
 import { randomUUID } from "crypto";
-import { DefaultAuthHandler } from "./AuthToken";
+import AuthToken from "./AuthToken";
 
 class UserService {
   static splitName(name: string) {
@@ -53,7 +53,8 @@ class UserService {
         }
         client.ownerId = randomUUID();
         await queryRunner.manager.save(client);
-        const jwtToken = DefaultAuthHandler.createToken(client.getClient());
+        const authHandler = new AuthToken();
+        const jwtToken = authHandler.createToken(client.getClient());
         response.success("Github user already exists", {
           token: jwtToken,
           userExists: true,
@@ -75,7 +76,8 @@ class UserService {
       client.ownerId = randomUUID();
       await queryRunner.manager.save(client);
       const clientData = client.getClient();
-      const jwtToken = DefaultAuthHandler.createToken(clientData);
+      const authHandler = new AuthToken();
+      const jwtToken = authHandler.createToken(clientData);
       response.success("New user created", {
         token: jwtToken,
       });

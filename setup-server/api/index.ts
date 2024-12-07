@@ -7,11 +7,13 @@ import AuthRouter from './routes/Auth'
 import AppRouter from './routes/Projects';
 import GithubAppRouter from './routes/GithubApp';
 import { nextErrorHandler } from './utils/middleware';
+import cors from 'cors';
 
 const app: Express = express();
 const jsonParser = bodyParser.json()
 const urlencodedParser = bodyParser.urlencoded({ extended: false })
 const port = process.env.PORT;
+app.use(cors({ origin: '*', methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] }));
 app.use(jsonParser);
 app.use(urlencodedParser);
 app.get('/health', (req: Request, res: Response) => {
@@ -20,6 +22,8 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/auth',AuthRouter)
 app.use(AppRouter)
 app.use('/githubApp', GithubAppRouter);
+// cors allow all
+
 
 app.use(nextErrorHandler);
 
