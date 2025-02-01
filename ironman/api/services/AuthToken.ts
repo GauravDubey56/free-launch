@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import { AuthenticatedRequest } from "../interfaces/AuthInterface.js";
-import CustomError from "../utils/error";
-import ServiceResponse from "./Response";
+import CustomError from "../utils/error.js";
+import ServiceResponse from "./Response.js";
 class AuthToken {
   #jwtToken: string;
   constructor() {
